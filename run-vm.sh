@@ -17,6 +17,7 @@ CURL=(curl --silent --show-error --header Content-Type:application/json --unix-s
 
 # Setup TAP device that uses proxy ARP
 MASK_LONG="255.255.255.252"
+MASK_SHORT="/30"
 FC_IP="$(printf '169.254.%s.%s' $(((4 * SB_ID + 1) / 256)) $(((4 * SB_ID + 1) % 256)))"
 TAP_IP="$(printf '169.254.%s.%s' $(((4 * SB_ID + 2) / 256)) $(((4 * SB_ID + 2) % 256)))"
 FC_MAC="$(printf '02:FC:00:00:%02X:%02X' $((SB_ID / 256)) $((SB_ID % 256)))"
@@ -41,11 +42,18 @@ curl_put() {
     fi
 }
 
+sudo ip link del "$TAP_DEV" 2> /dev/null || true
+sudo ip tuntap add dev "$TAP_DEV" mode tap
+sudo sysctl -w net.ipv4.conf.${TAP_DEV}.proxy_arp=1 > /dev/null
+sudo sysctl -w net.ipv6.conf.${TAP_DEV}.disable_ipv6=1 > /dev/null
+sudo ip addr add "${TAP_IP}${MASK_SHORT}" dev "$TAP_DEV"
+sudo ip link set dev "$TAP_DEV" up
+
 echo "ID: $SB_ID"
 echo "KERNEL: $KERNEL"
 echo "TAP_DEV: $TAP_DEV"
 echo "KERNEL_BOOT_ARGS: $KERNEL_BOOT_ARGS"
-echo "MASK: $MASK_LONG" 
+echo "MASK: $MASK_LONG"
 echo "IP: $FC_IP"
 echo -e "MAC: $FC_MAC \n"
 
