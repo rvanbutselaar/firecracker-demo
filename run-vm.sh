@@ -49,6 +49,9 @@ sudo sysctl -w net.ipv6.conf.${TAP_DEV}.disable_ipv6=1 > /dev/null
 sudo ip addr add "${TAP_IP}${MASK_SHORT}" dev "$TAP_DEV"
 sudo ip link set dev "$TAP_DEV" up
 
+echo > output/fc-sb${SB_ID}-log
+echo > output/fc-sb${SB_ID}-metrics
+
 echo "ID: $SB_ID"
 echo "KERNEL: $KERNEL"
 echo "TAP_DEV: $TAP_DEV"
@@ -86,7 +89,6 @@ curl_put '/boot-source' <<EOF
   "boot_args": "$KERNEL_BOOT_ARGS"
 }
 EOF
-
 
 curl_put '/drives/rootfs' <<EOF
 {
